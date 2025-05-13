@@ -1,36 +1,37 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/ShubhamkumarAnand/melkey-go/mel_project/internal/app"
+	"github.com/ShubhamkumarAnand/melkey-go/mel_project/internal/routes"
 )
 
 func main() {
+	var port int
+	flag.IntVar(&port, "port", 8080, "go backend server poer")
+	flag.Parse()
 
 	app, err := app.NewApplication()
 	if err != nil {
 		panic(err)
 	}
+	r := routes.SetupRoutes(app)
 
-	app.Logger.Println("App is Up and Running")
-
-	http.HandleFunc("/health", HealthCheck)
 	server := &http.Server{
-		Addr:         ":8080",
+		Addr:         fmt.Sprintf(":%d", port),
+		Handler:      r,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
 
+	app.Logger.Printf("Up and Running at Port %d\n", port)
 	err = server.ListenAndServe()
 	if err != nil {
 		app.Logger.Fatal(err)
 	}
-}
-
-func HealthCheck(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Status is Available\n")
 }
