@@ -12,12 +12,12 @@ import (
 
 func main() {
 	// command line parsing for the port given by user
-	// eg. -port 8081
+	// eg. go run main.go -port 8081
 	var port int
 	flag.IntVar(&port, "port", 8080, "go backend server port")
 	flag.Parse()
 
-	// instance the new application
+	// initiating instance the new application
 	app, err := app.NewApplication()
 	if err != nil {
 		panic(err)
@@ -26,7 +26,7 @@ func main() {
 
 	r := routes.SetupRoutes(app)
 
-	// creating a server
+	// Configure the server
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", port),
 		Handler:      r,

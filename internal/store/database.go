@@ -16,6 +16,9 @@ func Open() (*sql.DB, error) {
 		return nil, fmt.Errorf("db: open %w\n", err)
 	}
 	fmt.Println("Connected to Database...")
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("db: ping %w", err)
+	}
 	return db, nil
 }
 
