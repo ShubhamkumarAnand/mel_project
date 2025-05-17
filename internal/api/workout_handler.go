@@ -167,6 +167,5 @@ func (wh *WorkoutHandler) HandleDeleteWorkoutByID(w http.ResponseWriter, r *http
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Workout deleted successfully")
+	w.WriteHeader(http.StatusNoContent)
 }
