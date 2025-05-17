@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -62,14 +63,13 @@ func (wh *WorkoutHandler) HandleCreateWorkout(w http.ResponseWriter, r *http.Req
 }
 
 func (wh *WorkoutHandler) HandleUpdateWorkoutByID(w http.ResponseWriter, r *http.Request) {
-	// getting the id from the url parameter
+	// getting the id from the url parameter and parse the ID
 	paramsWorkoutID := chi.URLParam(r, "id")
 	if paramsWorkoutID == "" {
 		http.NotFound(w, r)
 		return
 	}
 
-	// parse the id
 	workoutID, err := strconv.ParseInt(paramsWorkoutID, 10, 64)
 	if err != nil {
 		http.NotFound(w, r)
@@ -130,4 +130,43 @@ func (wh *WorkoutHandler) HandleUpdateWorkoutByID(w http.ResponseWriter, r *http
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(existingWorkout)
+}
+
+func (wh *WorkoutHandler) HandleDeleteWorkoutByID(w http.ResponseWriter, r *http.Request) {
+	// getting the id from the url parameter and parse the ID
+	paramsWorkoutID := chi.URLParam(r, "id")
+	if paramsWorkoutID == "" {
+		http.NotFound(w, r)
+		return
+	}
+
+	workoutID, err := strconv.ParseInt(paramsWorkoutID, 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	existingWorkout, err := wh.workoutStore.GetWorkoutByID(workoutID)
+	if err != nil {
+		http.Error(w, "failed to fetch workout", http.StatusInternalServerError)
+	}
+
+	if existingWorkout == nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	err = wh.workoutStore.DeleteWorkout(workoutID)
+	if err == sql.ErrNoRows {
+		http.Error(w, "workout not found", http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		http.Error(w, "failed to delete workout", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "Workout deleted successfully")
 }

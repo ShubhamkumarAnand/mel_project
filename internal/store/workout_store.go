@@ -36,6 +36,7 @@ type WorkoutStore interface {
 	CreateWorkout(*Workout) (*Workout, error)
 	GetWorkoutByID(id int64) (*Workout, error)
 	UpdateWorkout(*Workout) error
+	DeleteWorkout(id int64) error
 }
 
 func (pg *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error) {
@@ -55,7 +56,7 @@ func (pg *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error
 		return nil, err
 	}
 
-	// we also need to insert the enteries
+	// we also need to insert the entries
 	for _, entry := range workout.Entries {
 		query := `
 		INSERT INTO workout_entries (workout_id, exercise_name, sets, reps, duration_seconds, weight, notes, order_index)
@@ -88,12 +89,12 @@ func (pg *PostgresWorkoutStore) GetWorkoutByID(id int64) (*Workout, error) {
 		return nil, err
 	}
 	if err != sql.ErrNoRows {
-		return nil, nil
+		return nil, err
 	}
-	// let's get the enteris
+	// let's get the entries
 	entryQuery := `
 	SELECT id, exercise_name, sets, reps, duration_seconds, weight, notes, order_index
-	FROM workout_enteries
+	FROM workout_entries
 	WHERE workout_id = $1
 	ORDER BY order_index
 	`
@@ -167,4 +168,19 @@ func (pg *PostgresWorkoutStore) UpdateWorkout(workout *Workout) error {
 		}
 	}
 	return tx.Commit()
+}
+
+func (pg *PostgresWorkoutStore) DeleteWorkout(id int64) error {
+	result, err := pg.db.Exec(`DELETE FROM workouts WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
 }
