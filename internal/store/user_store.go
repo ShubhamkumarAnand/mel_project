@@ -85,7 +85,7 @@ func (s *PostgresUserStore) GetUserByUsername(username string) (*User, error) {
 	}
 
 	query := `
-	SELECT username, email, bio, created_at, updated_at
+	SELECT id, username, email, bio, created_at, updated_at
 	FROM users
 	WHERE username = $1
 	`
