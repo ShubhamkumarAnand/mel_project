@@ -24,7 +24,7 @@ type password struct {
 }
 
 func (p *password) Set(plainTextPassword string) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(plainTextPassword), 10)
+	hash, err := bcrypt.GenerateFromPassword([]byte(plainTextPassword), 12)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (s *PostgresUserStore) CreateUser(user *User) error {
 	RETURNING id, created_at, updated_at
 	`
 
-	err := s.db.QueryRow(query, user.Username, user.Email, user.PasswordHash.hash, user.Bio).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
+	err := s.db.QueryRow(query, user.Username, user.Email, string(user.PasswordHash.hash), user.Bio).Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		return err
 	}
@@ -85,11 +85,11 @@ func (s *PostgresUserStore) GetUserByUsername(username string) (*User, error) {
 	}
 
 	query := `
-	SELECT id, username, email, bio, created_at, updated_at
+	SELECT id, username, email, password_hash, bio, created_at, updated_at
 	FROM users
 	WHERE username = $1
 	`
-	err := s.db.QueryRow(query, username).Scan(&user.ID, &user.Username, &user.Email, &user.Bio, &user.CreatedAt, &user.UpdatedAt)
+	err := s.db.QueryRow(query, username).Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash.hash, &user.Bio, &user.CreatedAt, &user.UpdatedAt)
 
 	if err == sql.ErrNoRows {
 		return nil, nil

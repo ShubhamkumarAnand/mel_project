@@ -41,7 +41,6 @@ func (h *TokenHandler) HandleCreateToken(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// get the user
 	user, err := h.userStore.GetUserByUsername(req.Username)
 
 	if err != nil || user == nil {
